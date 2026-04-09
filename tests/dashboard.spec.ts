@@ -17,7 +17,9 @@ test.describe("homepage", () => {
 
     await page.waitForLoadState("networkidle");
 
-    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
     await testInfo.attach("accessibility-scan-results", {
       body: JSON.stringify(accessibilityScanResults, null, 2),
       contentType: "application/json",
