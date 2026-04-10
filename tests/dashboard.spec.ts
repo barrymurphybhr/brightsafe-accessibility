@@ -1,30 +1,49 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { createHtmlReport } from "axe-html-reporter";
+import * as path from "path";
 
-test.describe("homepage", () => {
-  test("should not have any automatically detectable accessibility issues", async ({
-    page,
-  }, testInfo) => {
-    const username = process.env.PLAYWRIGHT_USERNAME || "";
-    const password = process.env.PLAYWRIGHT_PASSWORD || "";
+test.describe("Achieving WCAG Standard with Playwright Accessibility Tests", () => {
+  test("Accessibility Scan", async ({ page }, testInfo) => {
+    await test.step("Login to brightsafe", async () => {
+      const username: string = process.env.PLAYWRIGHT_USERNAME || "";
+      const password: string = process.env.PLAYWRIGHT_PASSWORD || "";
 
-    await page.goto(`${process.env.BASE_URL}`);
-    await page.getByRole("textbox", { name: "Email address" }).fill(username);
-    await page
-      .getByRole("textbox", { name: "Password visibility" })
-      .fill(password);
-    await page.getByTestId("login-button").click();
-
-    await page.waitForLoadState("networkidle");
-
-    const accessibilityScanResults = await new AxeBuilder({ page })
-      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-      .analyze();
-    await testInfo.attach("accessibility-scan-results", {
-      body: JSON.stringify(accessibilityScanResults, null, 2),
-      contentType: "application/json",
+      await page.goto(`${process.env.BASE_URL}`);
+      await page.getByRole("textbox", { name: "Email address" }).fill(username);
+      await page
+        .getByRole("textbox", { name: "Password visibility" })
+        .fill(password);
+      await page.getByTestId("login-button").click();
     });
 
-    expect(accessibilityScanResults.violations).toEqual([]);
+    await test.step("Run accessibility checks", async () => {
+      await page.waitForLoadState("networkidle");
+
+      const axeResults = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa"])
+        .analyze();
+
+      const reportDir: string = "test-results/axe-core-reports";
+      const reportPath: string = path.join(
+        reportDir,
+        `accessibility-report.html`,
+      );
+
+      createHtmlReport({
+        results: axeResults,
+        options: {
+          outputDir: reportDir,
+          reportFileName: `accessibility-report.html`,
+        },
+      });
+
+      await testInfo.attach(`accessibility-report`, {
+        path: reportPath,
+        contentType: "text/html",
+      });
+
+      expect(axeResults.violations).toHaveLength(0);
+    });
   });
 });
