@@ -9,7 +9,7 @@ test.describe("Achieving WCAG Standard with Playwright Accessibility Tests", () 
       const username: string = process.env.PLAYWRIGHT_USERNAME || "";
       const password: string = process.env.PLAYWRIGHT_PASSWORD || "";
 
-      await page.goto(`${process.env.BASE_URL}`);
+      await page.goto(`${process.env.BASE_URL}risk-assessments`);
       await page.getByRole("textbox", { name: "Email address" }).fill(username);
       await page
         .getByRole("textbox", { name: "Password visibility" })
